@@ -55,17 +55,71 @@ public class StaticCodeAnalyzerTest extends BaseTest {
         ScannerContextImpl scannerContext = new ScannerContextImpl(List.of(CoreRule.AVOID_CHECKPANIC.rule()));
         StaticCodeAnalyzer staticCodeAnalyzer = new StaticCodeAnalyzer(document, scannerContext);
         staticCodeAnalyzer.analyze();
+
         List<Issue> issues = scannerContext.getReporter().getIssues();
-        Assert.assertEquals(issues.size(), 1);
+        Assert.assertEquals(issues.size(), 2);
         Issue issue = issues.get(0);
         Assert.assertEquals(issue.source(), Source.BUILT_IN);
         LineRange location = issue.location().lineRange();
         Assert.assertEquals(location.fileName(), documentName);
-        Assert.assertEquals(location.startLine().line(), 20);
-        Assert.assertEquals(location.startLine().offset(), 17);
-        Assert.assertEquals(location.endLine().line(), 20);
-        Assert.assertEquals(location.endLine().offset(), 39);
+        Assert.assertEquals(location.startLine().line(), 18);
+        Assert.assertEquals(location.startLine().offset(), 24);
+        Assert.assertEquals(location.endLine().line(), 18);
+        Assert.assertEquals(location.endLine().offset(), 46);
         Rule rule = issue.rule();
+        Assert.assertEquals(rule.id(), "ballerina:1");
+        Assert.assertEquals(rule.numericId(), 1);
+        Assert.assertEquals(rule.description(), "Avoid checkpanic");
+        Assert.assertEquals(rule.kind(), RuleKind.CODE_SMELL);
+
+        issue = issues.get(1);
+        Assert.assertEquals(issue.source(), Source.BUILT_IN);
+        location = issue.location().lineRange();
+        Assert.assertEquals(location.fileName(), documentName);
+        Assert.assertEquals(location.startLine().line(), 22);
+        Assert.assertEquals(location.startLine().offset(), 17);
+        Assert.assertEquals(location.endLine().line(), 22);
+        Assert.assertEquals(location.endLine().offset(), 39);
+        rule = issue.rule();
+        Assert.assertEquals(rule.id(), "ballerina:1");
+        Assert.assertEquals(rule.numericId(), 1);
+        Assert.assertEquals(rule.description(), "Avoid checkpanic");
+        Assert.assertEquals(rule.kind(), RuleKind.CODE_SMELL);
+    }
+
+    @Test(description = "test checkpanic analyzer")
+    void testDuplicateConstiuentWithUnionAnalyzer() {
+        String documentName = "duplicate_constiuent_types_union.bal";
+        Document document = loadDocument(documentName);
+        ScannerContextImpl scannerContext = new ScannerContextImpl(List.of(CoreRule.AVOID_CHECKPANIC.rule()));
+        StaticCodeAnalyzer staticCodeAnalyzer = new StaticCodeAnalyzer(document, scannerContext);
+        staticCodeAnalyzer.analyze();
+
+        List<Issue> issues = scannerContext.getReporter().getIssues();
+        Assert.assertEquals(issues.size(), 2);
+        Issue issue = issues.get(0);
+        Assert.assertEquals(issue.source(), Source.BUILT_IN);
+        LineRange location = issue.location().lineRange();
+        Assert.assertEquals(location.fileName(), documentName);
+        Assert.assertEquals(location.startLine().line(), 18);
+        Assert.assertEquals(location.startLine().offset(), 24);
+        Assert.assertEquals(location.endLine().line(), 18);
+        Assert.assertEquals(location.endLine().offset(), 46);
+        Rule rule = issue.rule();
+        Assert.assertEquals(rule.id(), "ballerina:1");
+        Assert.assertEquals(rule.numericId(), 1);
+        Assert.assertEquals(rule.description(), "Avoid checkpanic");
+        Assert.assertEquals(rule.kind(), RuleKind.CODE_SMELL);
+
+        issue = issues.get(1);
+        Assert.assertEquals(issue.source(), Source.BUILT_IN);
+        location = issue.location().lineRange();
+        Assert.assertEquals(location.fileName(), documentName);
+        Assert.assertEquals(location.startLine().line(), 22);
+        Assert.assertEquals(location.startLine().offset(), 17);
+        Assert.assertEquals(location.endLine().line(), 22);
+        Assert.assertEquals(location.endLine().offset(), 39);
+        rule = issue.rule();
         Assert.assertEquals(rule.id(), "ballerina:1");
         Assert.assertEquals(rule.numericId(), 1);
         Assert.assertEquals(rule.description(), "Avoid checkpanic");

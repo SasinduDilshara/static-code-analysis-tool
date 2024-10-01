@@ -30,7 +30,11 @@ import java.util.List;
  * @since 0.1.0
  * */
 enum CoreRule {
-    AVOID_CHECKPANIC(RuleFactory.createRule(1, "Avoid checkpanic", RuleKind.CODE_SMELL));
+    AVOID_CHECKPANIC(RuleFactory.createRule(1, "Avoid checkpanic", RuleKind.CODE_SMELL)),
+    NO_DUPLICATE_CONSTITUENTS_IN_UNION_TYPES(RuleFactory.createRule(2,
+            "Duplicate constituents are not allowed in union types", RuleKind.CODE_SMELL)),
+    NO_DUPLICATE_CONSTITUENTS_IN_INTERSECTION_TYPES(RuleFactory.createRule(3,
+            "Duplicate constituents are not allowed in intersection types", RuleKind.CODE_SMELL));
 
     private final Rule rule;
 
