@@ -71,4 +71,27 @@ public class StaticCodeAnalyzerTest extends BaseTest {
         Assert.assertEquals(rule.description(), "Avoid checkpanic");
         Assert.assertEquals(rule.kind(), RuleKind.CODE_SMELL);
     }
+
+    @Test(description = "test dead store analyzer")
+    void testDeadStoreAnalyzerAnalyzer() {
+        String documentName = "dead_store.bal";
+        Document document = loadDocument(documentName);
+        ScannerContextImpl scannerContext = new ScannerContextImpl(List.of(CoreRule.DEAD_STORE.rule()));
+        StaticCodeAnalyzer staticCodeAnalyzer = new StaticCodeAnalyzer(document, scannerContext);
+        staticCodeAnalyzer.analyze();
+        List<Issue> issues = scannerContext.getReporter().getIssues();
+
+        String s = "";
+        issues.sort((o1, o2) -> o1.location().lineRange().startLine().line() - o2.location().lineRange().startLine().line());
+        for (int i = 0; i < issues.size(); i++) {
+            Issue issue = issues.get(i);
+            LineRange location = issue.location().lineRange();
+            int a = location.startLine().line();
+            s += a + 1 + ", ";
+        }
+        String t = s;
+
+
+        Assert.assertEquals(issues.size(), 1);
+    }
 }

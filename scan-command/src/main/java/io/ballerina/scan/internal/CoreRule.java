@@ -30,7 +30,8 @@ import java.util.List;
  * @since 0.1.0
  * */
 enum CoreRule {
-    AVOID_CHECKPANIC(RuleFactory.createRule(1, "Avoid checkpanic", RuleKind.CODE_SMELL));
+    AVOID_CHECKPANIC(RuleFactory.createRule(1, "Avoid checkpanic", RuleKind.CODE_SMELL)),
+    DEAD_STORE(RuleFactory.createRule(5, "Dead store", RuleKind.CODE_SMELL));
 
     private final Rule rule;
 
