@@ -1,12 +1,18 @@
 int moduleLevel1 = 3;
 int moduleLevel2 = 3;
 
-record {int moduleLevel3;} {moduleLevel3} = {moduleLevel3: 1}; // ((SpecificFieldNode)(((MappingConstructorExpressionNode)(((VariableDeclarationNode)(((FunctionBodyBlockNode) (((FunctionDefinitionNode)(modulePartNode.members().get(0))).functionBody())).statements().get(3))).initializer().get())).fields().get(0))).fieldName()
+record {int moduleLevel3;} {moduleLevel3} = {moduleLevel3: 1};
 int moduleLevel4 = 1;
 [int, string] [moduleLevel5, moduleLevel6] = [1, "2"];
 var moduleLevel7 = [1, 2].map((ma4) => ());
 
-function test() {
+function testSimpleLocalVariableDecl() {
+    int localVar2 = 1;
+    int localVar3 = localVar2; // warning
+    localVar2 = 2; // warning
+}
+
+function testLocalVarDecl() {
     moduleLevel1 = 3;
     int localVar1; // warning
     int localVar2 = 1;
@@ -17,7 +23,7 @@ function test() {
     var localVar8 = [1, 2].map((a4) => ()); // warning
 }
 
-function test2() {
+function testLocalVarDecl2() {
     moduleLevel1 = 3;
     int moduleLevel1; // warning
 
@@ -45,7 +51,7 @@ function test2() {
     localVar6 = 13; // warning
 }
 
-function test3() {
+function testLocalVarDeclWithMappingBindingpattern() {
     record {int localVar1; int localVar2;}
             {localVar1, localVar2} = {localVar1: 1, localVar2: 5};
     {localVar1, localVar2} = {localVar1: 1, localVar2: localVar1}; // warning
@@ -58,9 +64,9 @@ function test3() {
     {localVar3, localVar4} = {localVar3: 1, localVar4: localVar3}; // warning * 2
 }
 
-function test4() {
+function testLocalVarDeclWithListBindingpattern() {
    [int, int] [localVar1, localVar2] = [1, 5];
-   [localVar1, localVar2] = [1, localVar1];
+   [localVar1, localVar2] = [1, localVar1]; // warning
    _ = dummyFunction(localVar2);
 
    [int, int] [localVar3, localVar4] = [1, 5];
@@ -83,37 +89,12 @@ function dummyFunction(any a) returns int {
     return 1;
 }
 
-function errorBindingPattern(any|error e) returns string {
-    match e {
-        var error(localVar9) => {
-            return <string>localVar9 + " is an error";
-        }
-    }
-    match e {
-        var error(localVar9) => { // warning
-            return "" + " is an error";
-        }
-    }
-    return "No match";
-}
-
-function test5() {
-    int localVar2 = 1;
-    int localVar3 = localVar2; // warning
-    localVar2 = 2; // warning
-}
-
 type SampleError error<record {|int code; string reason;|}>;
 
 [int, string] [a, b] = [1, ""];
 record {int localVar3; int localVar4;} {localVar3, localVar4} = {localVar3: 1, localVar4: 5};
 
-function test6() {
-    [a, b] = [1, ""];
-    {localVar3, localVar4} = {localVar3: 1, localVar4: localVar3};
-}
-
-function testClosureWithErrorBindingPatterns() {
+function testErrorBindingpatternVarDecl() {
     SampleError e = error("Transaction Failure", error("Database Error"), code = 20,reason = "deadlock condition");
     var error(code = code, reason = reason) = e;
     error(code = code, reason = reason) = e;
