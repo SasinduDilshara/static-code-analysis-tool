@@ -20,7 +20,6 @@ package io.ballerina.scan.internal;
 
 import io.ballerina.compiler.syntax.tree.AssignmentStatementNode;
 import io.ballerina.compiler.syntax.tree.CaptureBindingPatternNode;
-import io.ballerina.compiler.syntax.tree.CheckExpressionNode;
 import io.ballerina.compiler.syntax.tree.CompoundAssignmentStatementNode;
 import io.ballerina.compiler.syntax.tree.FieldBindingPatternVarnameNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
@@ -31,10 +30,8 @@ import io.ballerina.compiler.syntax.tree.NodeLocation;
 import io.ballerina.compiler.syntax.tree.NodeVisitor;
 import io.ballerina.compiler.syntax.tree.RestBindingPatternNode;
 import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
-import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.TypedBindingPatternNode;
-import io.ballerina.compiler.syntax.tree.VariableDeclarationNode;
 import io.ballerina.projects.Document;
 import io.ballerina.scan.ScannerContext;
 
@@ -76,23 +73,10 @@ class StaticCodeAnalyzer extends NodeVisitor {
 
     private void reportLocalDeadStores(Document document, CoreRule coreRule) {
         this.analyzerData.localVarReferenceSet.forEach(localVar -> {
-                scannerContext.getReporter().reportIssue(document, localVar.location, coreRule.rule());
+            scannerContext.getReporter().reportIssue(document, localVar.location, coreRule.rule());
         });
         this.analyzerData.localVarReferenceSet.clear();
         this.analyzerData.localVarDeclarationSet.clear();
-    }
-
-    /**
-     * Visits check expressions in a Ballerina document and perform static code analysis.
-     *
-     * @param checkExpressionNode node that represents a check expression
-     */
-    @Override
-    public void visit(CheckExpressionNode checkExpressionNode) {
-        if (checkExpressionNode.checkKeyword().kind().equals(SyntaxKind.CHECKPANIC_KEYWORD)) {
-            scannerContext.getReporter().reportIssue(document, checkExpressionNode.location(),
-                    CoreRule.AVOID_CHECKPANIC.rule());
-        }
     }
 
     @Override
@@ -111,6 +95,7 @@ class StaticCodeAnalyzer extends NodeVisitor {
 
     @Override
     public void visit(AssignmentStatementNode assignmentStatementNode) {
+        // First evaluate the RHS expression.
         assignmentStatementNode.expression().accept(this);
         this.analyzerData.localVarAssignment = true;
         assignmentStatementNode.varRef().accept(this);
@@ -119,6 +104,7 @@ class StaticCodeAnalyzer extends NodeVisitor {
 
     @Override
     public void visit(CompoundAssignmentStatementNode captureBindingPatternNode) {
+        // First evaluate the RHS expression.
         captureBindingPatternNode.rhsExpression().accept(this);
         this.analyzerData.localVarAssignment = true;
         captureBindingPatternNode.lhsExpression().accept(this);
@@ -134,6 +120,7 @@ class StaticCodeAnalyzer extends NodeVisitor {
 
     @Override
     public void visit(RestBindingPatternNode restBindingPatternNode) {
+        // Rest binding pattern is a variable declaration.
         this.analyzerData.addVariableToVarDeclarationSet(
                 restBindingPatternNode.variableName().name().text(),
                 restBindingPatternNode.location(), analyzerData.moduleLevelVarDecl);
@@ -141,6 +128,7 @@ class StaticCodeAnalyzer extends NodeVisitor {
 
     @Override
     public void visit(NamedArgBindingPatternNode namedArgBindingPatternNode) {
+        // Named arg binding pattern is a variable declaration.
         this.analyzerData.addVariableToVarDeclarationSet(
                 namedArgBindingPatternNode.argName().text(),
                 namedArgBindingPatternNode.location(), analyzerData.moduleLevelVarDecl);
@@ -148,6 +136,7 @@ class StaticCodeAnalyzer extends NodeVisitor {
 
     @Override
     public void visit(FieldBindingPatternVarnameNode fieldBindingPatternVarnameNode) {
+        // Field binding pattern varname is a variable declaration.
         this.analyzerData.addVariableToVarDeclarationSet(
                 fieldBindingPatternVarnameNode.variableName().name().text(),
                 fieldBindingPatternVarnameNode.location(), analyzerData.moduleLevelVarDecl);
@@ -156,11 +145,12 @@ class StaticCodeAnalyzer extends NodeVisitor {
     @Override
     public void visit(SimpleNameReferenceNode simpleNameReferenceNode) {
         String name = simpleNameReferenceNode.name().text();
-        if (this.analyzerData.localVarAssignment
-                && analyzerData.localVarDeclarationSet.contains(name)) {
+        if (this.analyzerData.localVarAssignment && analyzerData.localVarDeclarationSet.contains(name)) {
+            // This is a local variable assignment.
             this.analyzerData.addVariableToVarDeclarationSet(name,
                     simpleNameReferenceNode.location(), analyzerData.moduleLevelVarDecl);
         } else {
+            // This is a variable reference.
             this.analyzerData.localVarReferenceSet.removeIf(localVar -> localVar.name.equals(name));
         }
         simpleNameReferenceNode.name().accept(this);
@@ -169,24 +159,24 @@ class StaticCodeAnalyzer extends NodeVisitor {
 
 class AnalyzerData {
     public Set<LocalVariableMetadata> localVarReferenceSet = new HashSet<>();
-    public Set<LocalVariableMetadata> moduleVarDeclarationSet = new HashSet<>();
     public Set<String> localVarDeclarationSet = new HashSet<>();
     boolean localVarAssignment = false;
     boolean moduleLevelVarDecl = false;
     boolean localVarDecl = false;
 
     public void addVariableToVarDeclarationSet(String name, NodeLocation location, boolean isModuleLevelVarDecl) {
-        if (isModuleLevelVarDecl) {
-            this.moduleVarDeclarationSet.add(LocalVariableMetadata.from(name, location));
+        if (this.localVarDecl)  {
+            this.localVarDeclarationSet.add(name);
+            this.localVarReferenceSet.add(LocalVariableMetadata.from(name, location));
             return;
         }
-        if (this.localVarDecl || this.localVarDeclarationSet.contains(name)) {
+
+        if (this.localVarDeclarationSet.contains(name)) {
             this.localVarReferenceSet.removeIf(localVar -> localVar.name.equals(name));
             this.localVarReferenceSet.add(LocalVariableMetadata.from(name, location));
-            if (!this.localVarDeclarationSet.contains(name)) {
-                this.localVarDeclarationSet.add(name);
-            }
         }
+
+        // Ignore Module level variable declarations and assignments.
     }
 }
 

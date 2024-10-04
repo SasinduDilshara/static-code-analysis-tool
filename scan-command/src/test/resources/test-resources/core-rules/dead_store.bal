@@ -118,8 +118,8 @@ function testClosureWithErrorBindingPatterns() {
     var error(code = code, reason = reason) = e;
     error(code = code, reason = reason) = e;
     string a = code.toString() + reason.toString();
-    return a == "" ? (): ();
+    _ = dummyFunction(a);
 
-    var error(code = code, reason = reason) = e;
-    error(code = code, reason = reason) = e; // warning * 2
+    var error(code = code2, reason = reason2) = e;
+    error(code = code2, reason = reason2) = e; // warning * 2
 }
