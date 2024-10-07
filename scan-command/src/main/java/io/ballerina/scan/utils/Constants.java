@@ -62,6 +62,17 @@ public class Constants {
     static final String RULE_DESCRIPTION_COLUMN = "Rule Description";
     static final String[] RULE_PRIORITY_LIST = {"ballerina", "ballerina/", "ballerinax/", "wso2/"};
 
+    public static class RuleDescription {
+        public static final String AVOID_CHECKPANIC = "Avoid checkpanic";
+        public static final String NO_DUPLICATE_CONSTITUENTS_IN_UNION_TYPES
+                = "Duplicate constituents are not allowed in union types";
+        public static final String NO_DUPLICATE_CONSTITUENTS_IN_INTERSECTION_TYPES
+                = "Duplicate constituents are not allowed in intersection types";
+
+        private RuleDescription() {
+        }
+    }
+
     private Constants() {
     }
 }

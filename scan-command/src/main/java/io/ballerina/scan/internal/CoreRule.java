@@ -20,6 +20,7 @@ package io.ballerina.scan.internal;
 
 import io.ballerina.scan.Rule;
 import io.ballerina.scan.RuleKind;
+import io.ballerina.scan.utils.Constants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,9 +33,9 @@ import java.util.List;
 enum CoreRule {
     AVOID_CHECKPANIC(RuleFactory.createRule(1, "Avoid checkpanic", RuleKind.CODE_SMELL)),
     NO_DUPLICATE_CONSTITUENTS_IN_UNION_TYPES(RuleFactory.createRule(2,
-            "Duplicate constituents are not allowed in union types", RuleKind.CODE_SMELL)),
+            Constants.RuleDescription.NO_DUPLICATE_CONSTITUENTS_IN_UNION_TYPES, RuleKind.CODE_SMELL)),
     NO_DUPLICATE_CONSTITUENTS_IN_INTERSECTION_TYPES(RuleFactory.createRule(3,
-            "Duplicate constituents are not allowed in intersection types", RuleKind.CODE_SMELL));
+            Constants.RuleDescription.NO_DUPLICATE_CONSTITUENTS_IN_INTERSECTION_TYPES, RuleKind.CODE_SMELL));
 
     private final Rule rule;
 
